@@ -1,0 +1,20 @@
+[project]
+name = "Dashify"
+description = "A new-generation terminal dashboard."
+authors = [
+    {name = "Icecreambobcat",email = "icekingrex123@gmail.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.14,<4.0"
+dependencies = [
+    "textual (>=7.5.0,<8.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+package-mode = false
