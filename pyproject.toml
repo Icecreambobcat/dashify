@@ -1,20 +1,38 @@
 [project]
 name = "Dashify"
 description = "A new-generation terminal dashboard."
+version = "0.1.0"
 authors = [
     {name = "Icecreambobcat",email = "icekingrex123@gmail.com"}
 ]
 license = {text = "MIT"}
 readme = "README.md"
-requires-python = ">=3.14,<4.0"
+requires-python = ">=3.14,<3.16"
 dependencies = [
-    "textual (>=7.5.0,<8.0.0)"
+    "textual (>=7.5.0,<8.0.0)",
+    "tomlkit (>=0.15.0,<0.16.0)",
+    "spotipy (>=2.26.0,<3.0.0)",
+    "pydantic (>=2.13.4,<3.0.0)"
 ]
-
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
+[dependency-groups]
+dev = [
+    "pytest (>=9.1.1,<10.0.0)",
+    "pyinstaller (>=6.22.2,<7.0.0)"
+]
+
+[project.scripts]
+dashify = "main:main"
+
 [tool.poetry]
-package-mode = false
+packages = [
+    { include = "main.py", from = "src" },
+    { include = "modules", from = "src" },
+]
+include = [
+    { path = "defaults/dashify.toml", format = ["sdist", "wheel"] },
+]
