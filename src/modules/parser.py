@@ -1,6 +1,6 @@
 from pathlib import Path
 import sys
-import tomlkit
+from tomlkit.toml_file import TOMLFile
 
 
 def get_config_path() -> Path:
@@ -15,4 +15,6 @@ def get_config_path() -> Path:
     return PROJECT_ROOT / "defaults" / "dashify.toml"
 
 
-def get_config() -> dict: ...
+def get_config_dict(path: Path) -> dict:
+    file = TOMLFile(path).read()
+    return file.unwrap()

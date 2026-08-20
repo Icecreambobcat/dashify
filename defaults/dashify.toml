@@ -1,0 +1,15 @@
+[widgets]
+kind = "Hbox"
+
+[widgets.left]
+kind = "Vbox"
+
+[widgets.right]
+kind = "Vbox"
+
+# repeat this for the 4 corners
+[widgets.left.top]
+kind = "Clock"
+opts = {
+  timezone = "UTC+0",
+}
