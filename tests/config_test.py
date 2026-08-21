@@ -28,7 +28,20 @@ values = [
                 },
             ],
         },
-    )
+    ),
+    (
+        {"kind": "Button", "opts": {"label": "Click me"}},
+        {"kind": "Button", "opts": {"label": "Click me"}},
+    ),
+    (
+        {"kind": "Box", "content": {"kind": "Label", "opts": {"text": "hi"}}},
+        {"kind": "Box", "children": [{"kind": "Label", "opts": {"text": "hi"}}]},
+    ),
+    (
+        {"kind": "A", "B": {"kind": "C", "D": {"kind": "E"}}},
+        {"kind": "A", "children": [{"kind": "C", "children": [{"kind": "E"}]}]},
+    ),
+    ({"kind": "Static", "opts": None}, {"kind": "Static", "opts": None}),
 ]
 
 
