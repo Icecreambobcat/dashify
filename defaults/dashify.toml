@@ -20,6 +20,12 @@ kind = "Timer"
 [widgets.left.todo]
 kind = "Todo"
 
+# A vertical custom arrangement. Widget defaults remain in the app; uncomment
+# switches and text below to enable them in this one-layer custom widget.
+# [widgets.left.custom]
+# kind = "Custom"
+# opts = { text = "Focus time", clock = true, timezone = "Australia/Sydney", timer = true, stopwatch = true, system_monitor = true, todo = true }
+
 # The right column's top tile is a 50/50 horizontal split of a clock and
 # stopwatch.
 [widgets.right.top]

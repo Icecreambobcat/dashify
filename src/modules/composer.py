@@ -3,6 +3,8 @@ from textual.widget import Widget
 from typing import Any
 
 from modules.conf import Config, INVALID_CONFIG_KIND
+from modules.custom import Custom
+from modules.todo import Todo
 from modules.elements import (
     Clock,
     HBox,
@@ -11,12 +13,12 @@ from modules.elements import (
     Stopwatch,
     SystemMonitor,
     Timer,
-    Todo,
     VBox,
 )
 
 ELEMENT_TYPES: dict[str, type[Widget]] = {
     "clock": Clock,
+    "custom": Custom,
     "hbox": HBox,
     "spotify": Spotify,
     "stopwatch": Stopwatch,
