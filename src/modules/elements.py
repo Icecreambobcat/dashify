@@ -6,6 +6,8 @@ from math import ceil
 from time import monotonic
 from zoneinfo import ZoneInfo
 
+import psutil
+from rich.text import Text
 from textual import events
 from textual.app import ComposeResult
 from textual.containers import (
@@ -464,6 +466,89 @@ class Todo(Static): ...
 
 # TODO: figure out a SQL implementation
 # should be stored at ~/.local/state/dashify/todo.db
+
+
+class CpuGraph(Static):
+    """A fixed-width, threshold-coloured history graph of CPU utilisation."""
+
+    BAR_CHARACTERS = "▁▂▃▄▅▆▇█"
+    history = reactive(list)
+
+    def add_sample(self, load: float) -> None:
+        """Append a CPU percentage and redraw the graph."""
+        self.history = [*self.history, max(0.0, min(100.0, load))][-38:]
+        self.update(self.render_graph())
+
+    def render_graph(self) -> Text:
+        """Render samples as green, yellow, or red bars by utilisation."""
+        graph = Text()
+        for load in self.history:
+            character_index = min(
+                len(self.BAR_CHARACTERS) - 1,
+                int(load / 100 * len(self.BAR_CHARACTERS)),
+            )
+            graph.append(self.BAR_CHARACTERS[character_index], style=self.colour_for(load))
+        return graph
+
+    @staticmethod
+    def colour_for(load: float) -> str:
+        """Choose an accessible colour for a CPU utilisation threshold."""
+        if load < 60:
+            return "green"
+        if load < 85:
+            return "yellow"
+        return "red"
+
+
+class SystemMonitor(VerticalGroup):
+    """A compact CPU monitor with a once-per-second colour-coded graph."""
+
+    DEFAULT_CSS = f"""
+    SystemMonitor {{
+        {WIDGET_FRAME_CSS}
+        height: 8;
+        align: center middle;
+    }}
+
+    SystemMonitor .cpu-load,
+    SystemMonitor .caption {{
+        width: 38;
+        height: 1;
+        text-align: center;
+    }}
+
+    SystemMonitor .cpu-load {{
+        text-style: bold;
+    }}
+
+    SystemMonitor CpuGraph {{
+        width: 38;
+        height: 2;
+        text-align: right;
+    }}
+
+    SystemMonitor .caption {{
+        color: $text-muted;
+        text-style: bold;
+    }}
+    """
+
+    def compose(self) -> ComposeResult:
+        """Compose the current CPU reading, history graph, and caption."""
+        yield Label(classes="cpu-load")
+        yield CpuGraph()
+        yield Label("System Monitor", classes="caption")
+
+    def on_mount(self) -> None:
+        """Sample immediately, then update CPU utilisation every second."""
+        self.update_cpu_load()
+        self.set_interval(1, self.update_cpu_load)
+
+    def update_cpu_load(self) -> None:
+        """Read the current total CPU utilisation and refresh the card."""
+        load = psutil.cpu_percent(interval=None)
+        self.query_one(".cpu-load", Label).update(f"CPU: {load:.0f}%")
+        self.query_one(CpuGraph).add_sample(load)
 
 
 class Clock(VerticalGroup):

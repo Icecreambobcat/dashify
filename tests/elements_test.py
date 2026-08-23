@@ -4,7 +4,18 @@ import re
 from textual.app import App, ComposeResult
 from textual.widgets import Button, Digits, Label
 
-from modules.elements import Clock, Stopwatch, TimeDisplay, Timer, TimerDisplay
+from modules import elements
+from modules.elements import (
+    Clock,
+    CpuGraph,
+    HBox,
+    Stopwatch,
+    SystemMonitor,
+    TimeDisplay,
+    Timer,
+    TimerDisplay,
+    VBox,
+)
 
 
 class ClockApp(App):
@@ -21,6 +32,15 @@ class TimerApp(App):
     def compose(self) -> ComposeResult:
         yield Timer()
 
+
+class SystemMonitorApp(App):
+    def compose(self) -> ComposeResult:
+        yield SystemMonitor()
+
+
+class CpuGraphApp(App):
+    def compose(self) -> ComposeResult:
+        yield CpuGraph()
 
 class TestClock:
     def test_has_a_timezone_property(self):
@@ -91,6 +111,53 @@ class TestTimer:
                 assert not display.has_class("editing")
                 assert display.value == "12:34:56"
                 assert display.duration == 45296
+
+        asyncio.run(run_test())
+
+
+class TestCpuGraph:
+    def test_colours_are_threshold_coded(self):
+        assert CpuGraph.colour_for(0) == "green"
+        assert CpuGraph.colour_for(59.9) == "green"
+        assert CpuGraph.colour_for(60) == "yellow"
+        assert CpuGraph.colour_for(84.9) == "yellow"
+        assert CpuGraph.colour_for(85) == "red"
+
+    def test_keeps_a_widget_width_history(self):
+        async def run_test() -> None:
+            async with CpuGraphApp().run_test() as pilot:
+                graph = pilot.app.query_one(CpuGraph)
+
+                for load in range(40):
+                    graph.add_sample(load)
+
+                assert graph.history == list(range(2, 40))
+                assert len(graph.render_graph().plain) == 38
+
+        asyncio.run(run_test())
+
+
+class TestSystemMonitor:
+    def test_layout_and_cpu_update(self, monkeypatch):
+        async def run_test() -> None:
+            monkeypatch.setattr(elements.psutil, "cpu_percent", lambda interval: 72.4)
+
+            async with SystemMonitorApp().run_test() as pilot:
+                monitor = pilot.app.query_one(SystemMonitor)
+                graph = monitor.query_one(CpuGraph)
+
+                assert monitor.region.width == 42
+                assert monitor.region.height == 8
+                assert graph.size.width == 38
+                assert list(graph.history) == [72.4]
+                assert str(monitor.query_one(".cpu-load", Label).render()) == "CPU: 72%"
+                assert (
+                    str(monitor.query_one(".caption", Label).render())
+                    == "System Monitor"
+                )
+
+                monitor.update_cpu_load()
+                assert list(graph.history) == [72.4, 72.4]
 
         asyncio.run(run_test())
 
