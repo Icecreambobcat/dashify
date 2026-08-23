@@ -8,6 +8,7 @@ class Config(BaseModel):
 
     Provides recursive checking to validate a widget-tree config.
     """
+
     kind: str
     opts: dict[str, str] | None
     children: list[Config] | None
