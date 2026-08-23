@@ -87,6 +87,88 @@ class TimeDisplay(Digits):
         self.time = 0.0
 
 
+class Stopwatch(VerticalGroup):
+    """A compact stopwatch with Start, Stop, and Reset controls.
+
+    The widget has no configuration options yet. Its elapsed time is kept in a
+    reactive :class:`TimeDisplay`, so it remains accurate across pauses.
+    """
+
+    DEFAULT_CSS = f"""
+    Stopwatch {{
+        {WIDGET_FRAME_CSS}
+    }}
+
+    Stopwatch TimeDisplay {{
+        width: 38;
+        height: 3;
+        text-align: center;
+    }}
+
+    Stopwatch .controls {{
+        width: 1fr;
+        height: 3;
+        align: center middle;
+        margin: 1 0 0 0;
+    }}
+
+    Stopwatch .controls Button {{
+        width: 10;
+    }}
+
+    Stopwatch .caption {{
+        width: 38;
+        height: 1;
+        margin: 1 0 0 0;
+        text-align: center;
+        color: $text-muted;
+        text-style: bold;
+    }}
+
+    Stopwatch .controls Button:focus {{
+        text-style: none;
+    }}
+
+    Stopwatch #stop {{
+        display: none;
+    }}
+
+    Stopwatch.started #start {{
+        display: none;
+    }}
+
+    Stopwatch.started #stop {{
+        display: block;
+    }}
+
+    """
+
+    def compose(self) -> ComposeResult:
+        """Compose the controls and elapsed-time display."""
+        yield TimeDisplay()
+        with HorizontalGroup(classes="controls"):
+            yield Button("Start", id="start", variant="success")
+            yield Button("Stop", id="stop", variant="error")
+            yield Button("Reset", id="reset")
+        yield Label("Stopwatch", classes="caption")
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        """Start, stop, or reset the display for the pressed control."""
+        time_display = self.query_one(TimeDisplay)
+        reset_button = self.query_one("#reset", Button)
+
+        if event.button.id == "start":
+            time_display.start()
+            reset_button.disabled = True
+            self.add_class("started")
+        elif event.button.id == "stop":
+            time_display.stop()
+            reset_button.disabled = False
+            self.remove_class("started")
+        elif event.button.id == "reset":
+            time_display.reset()
+
+
     """A clickable countdown display that accepts ``HH:MM:SS`` input."""
 
     can_focus = True
