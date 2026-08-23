@@ -1,6 +1,8 @@
+from typing import Any
+
 import pytest
 
-from modules.conf import flatten_config
+from modules.conf import Config, flatten_config, make_config
 
 values = [
     (
@@ -35,16 +37,59 @@ values = [
     ),
     (
         {"kind": "Box", "content": {"kind": "Label", "opts": {"text": "hi"}}},
-        {"kind": "Box", "children": [{"kind": "Label", "opts": {"text": "hi"}}]},
+        {"kind": "Box"},
     ),
     (
         {"kind": "A", "B": {"kind": "C", "D": {"kind": "E"}}},
-        {"kind": "A", "children": [{"kind": "C", "children": [{"kind": "E"}]}]},
+        {"kind": "A"},
     ),
-    ({"kind": "Static", "opts": None}, {"kind": "Static", "opts": None}),
+    ({"kind": "Static", "opts": None}, {"kind": "Static"}),
 ]
 
 
 @pytest.mark.parametrize(["config", "expected"], values)
-def test_flatten_config(config, expected):
+def test_flatten_config(config: dict[str, Any], expected: dict[str, Any]):
     assert flatten_config(config) == expected
+
+
+@pytest.mark.parametrize(
+    "config",
+    [None, [], {}, {"kind": ""}, {"kind": 1}, {"opts": {"timezone": "UTC"}}],
+)
+def test_flatten_config_ignores_invalid_nodes(config: object):
+    assert flatten_config(config) is None
+
+
+def test_flatten_config_ignores_bad_options_and_children():
+    config = {
+        "kind": "VBox",
+        "opts": "not a table",
+        "valid": {"kind": "Clock"},
+        "missing_kind": {"opts": {"timezone": "UTC"}},
+        "not_a_table": "ignored",
+    }
+
+    assert flatten_config(config) == {
+        "kind": "VBox",
+        "children": [
+            {"kind": "Clock"},
+            {
+                "kind": "__invalid__",
+                "opts": {"message": "Invalid widget configuration"},
+            },
+        ],
+    }
+
+
+def test_config_allows_missing_optional_fields():
+    config = Config.model_validate({"kind": "Todo"})
+
+    assert config.opts is None
+    assert config.children is None
+
+
+def test_default_configuration_validates():
+    config = make_config()
+
+    assert config is not None
+    assert config.kind == "Hbox"

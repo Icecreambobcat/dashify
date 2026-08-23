@@ -1,42 +1,62 @@
-from pydantic import BaseModel
-from modules.parser import get_config_path, get_config_dict
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict
+
+from modules.parser import get_config_dict, get_config_path
+
+META_CONTAINER_KINDS = {"hbox", "vbox"}
+INVALID_CONFIG_KIND = "__invalid__"
 
 
 class Config(BaseModel):
-    """
-    Uses a pydantic model to ensure valid configs.
+    """A validated widget-tree node with optional configuration and children."""
 
-    Provides recursive checking to validate a widget-tree config.
-    """
-
+    model_config = ConfigDict(extra="ignore")
     kind: str
-    opts: dict[str, str] | None
-    children: list[Config] | None
+    opts: dict[str, Any] | None = None
+    children: list[Config] | None = None
 
 
-def flatten_config(config: dict) -> dict:
+def flatten_config(config: object) -> dict[str, Any] | None:
+    """Normalise a TOML widget table, ignoring malformed nodes safely.
+
+    Only ``HBox`` and ``VBox`` treat named nested tables as child widgets.
+    Named tables on all other widget kinds are ignored, as are invalid ``opts``
+    values and child tables without a usable ``kind``.
     """
-    Recursively flattens the intuitive toml layout.
+    if not isinstance(config, dict):
+        return None
 
-    This is easier for pydantic to handle as well as for the app to process.
-    """
-    if set(config.keys()) | {"kind", "opts"} == {"kind", "opts"}:
-        return config
+    kind = config.get("kind")
+    if not isinstance(kind, str) or not kind.strip():
+        return None
 
-    children = []
+    flattened: dict[str, Any] = {"kind": kind}
+    opts = config.get("opts")
+    if isinstance(opts, dict):
+        flattened["opts"] = opts
 
-    for key, value in config.items():
-        if isinstance(value, dict) and key != "opts":
-            children.append(flatten_config(value))
+    if kind.casefold() in META_CONTAINER_KINDS:
+        children = []
+        for key, value in config.items():
+            if key in {"kind", "opts"} or not isinstance(value, dict):
+                continue
+            child = flatten_config(value)
+            children.append(
+                child
+                if child is not None
+                else {
+                    "kind": INVALID_CONFIG_KIND,
+                    "opts": {"message": "Invalid widget configuration"},
+                }
+            )
+        flattened["children"] = children
 
-    if "opts" in config.keys():
-        return {"kind": config["kind"], "opts": config["opts"], "children": children}
-
-    return {"kind": config["kind"], "children": children}
+    return flattened
 
 
-def make_config() -> Config:
-    """
-    Validation and generating a reference in 1 step
-    """
-    return Config(**flatten_config(get_config_dict(get_config_path())))
+def make_config() -> Config | None:
+    """Load a valid dashboard configuration, returning ``None`` for bad input."""
+    document = get_config_dict(get_config_path())
+    flattened = flatten_config(document.get("widgets", document))
+    return Config.model_validate(flattened) if flattened is not None else None

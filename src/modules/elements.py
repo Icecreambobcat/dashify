@@ -36,8 +36,6 @@ from textual.widgets.option_list import Option
 
 from modules.todo_store import DEFAULT_TODO_DATABASE_PATH, TodoItem, TodoStore
 
-# import spotipy
-
 # Include this declaration in every built-in widget's DEFAULT_CSS to keep the
 # dashboard's widgets visually consistent.
 WIDGET_FRAME_CSS = """
@@ -49,7 +47,6 @@ padding: 1;
 """
 
 
-# These classes provide expanding meta-containers accessible to the user.
 class VBox(Vertical):
     """An expanding vertical tile for dashboard elements."""
 
@@ -98,7 +95,20 @@ class HBox(Horizontal):
             yield element
 
 
-# These classes provide widgets that the user can place and arrange through the meta-containers
+class InvalidConfig(Static):
+    """A warning card occupying the position of an invalid configured element."""
+
+    DEFAULT_CSS = """
+    InvalidConfig {
+        border: round $warning;
+        padding: 1;
+        color: $warning;
+        content-align: center middle;
+        text-align: center;
+    }
+    """
+
+
 class TimeDisplay(Digits):
     """A reactive display for a :class:`Stopwatch`'s elapsed time."""
 
@@ -795,7 +805,7 @@ class Todo(VerticalGroup):
         if self.store.exists():
             self.continue_action()
         else:
-            self.show_view("todo-create-database", "todo-create-choice")
+            self.show_view("todo-create-database")
 
     def continue_action(self) -> None:
         """Resume the action selected before the database-existence check."""
@@ -804,7 +814,7 @@ class Todo(VerticalGroup):
         elif self.pending_action in {"browse", "edit", "delete"}:
             self.open_selector(self.pending_action)
         elif self.pending_action == "clear":
-            self.show_view("todo-clear-confirm", "todo-clear-cancel")
+            self.show_view("todo-clear-confirm")
 
     def open_selector(self, mode: str) -> None:
         """Populate the shared selector for browse, edit, or delete mode."""
@@ -820,7 +830,7 @@ class Todo(VerticalGroup):
             options = [Option("No todos available", id="empty", disabled=True)]
         options.append(Option("Back", id="back"))
         selector.set_options(options)
-        self.show_view("todo-selector", "todo-selector-list")
+        self.show_view("todo-selector")
 
     def select_todo(self, todo_id: int) -> None:
         """Open the action appropriate to the selected todo."""
@@ -834,7 +844,7 @@ class Todo(VerticalGroup):
         elif self.selection_mode == "edit":
             self.open_form(todo)
         elif self.selection_mode == "delete":
-            self.show_view("todo-delete-confirm", "todo-delete-cancel")
+            self.show_view("todo-delete-confirm")
 
     def open_form(self, todo: TodoItem | None = None) -> None:
         """Show the shared add/edit form, optionally populated from a todo."""
@@ -850,7 +860,7 @@ class Todo(VerticalGroup):
             todo.due_date or "" if todo else ""
         )
         self.query_one("#todo-form-error", Static).update("")
-        self.show_view("todo-form", "todo-title-input")
+        self.show_view("todo-form")
 
     def save_todo(self) -> None:
         """Validate and persist the shared add/edit form."""
@@ -872,7 +882,7 @@ class Todo(VerticalGroup):
         else:
             self.store.update_todo(self.selected_todo_id, title, notes, due_date)
         self.refresh_summary()
-        self.show_view("todo-context", "todo-menu")
+        self.show_view("todo-context")
 
     def show_detail(self, todo: TodoItem) -> None:
         """Render a selected todo in the read-only browse view."""
@@ -881,7 +891,7 @@ class Todo(VerticalGroup):
         self.query_one("#todo-detail-content", Static).update(
             f"{todo.title}\n\nDue: {due_date}\n\n{notes}"
         )
-        self.show_view("todo-detail", "todo-detail-back")
+        self.show_view("todo-detail")
 
     def refresh_summary(self) -> None:
         """Refresh the scrollable summary without implicitly creating the database."""
@@ -895,7 +905,7 @@ class Todo(VerticalGroup):
             return
         summary.update("\n".join(self.todo_option_label(todo) for todo in todos))
 
-    def show_view(self, view_id: str, _focus_id: str | None = None) -> None:
+    def show_view(self, view_id: str) -> None:
         """Display an in-widget view and keep the active border in sync."""
         views = self.query_one(ContentSwitcher)
         views.current = view_id
@@ -908,7 +918,7 @@ class Todo(VerticalGroup):
         self.selection_mode = None
         self.selected_todo_id = None
         self.refresh_summary()
-        self.show_view("todo-summary", "todo-manage")
+        self.show_view("todo-summary")
 
     def action_back(self) -> None:
         """Use Escape as a safe return to the context menu or summary."""
@@ -916,7 +926,7 @@ class Todo(VerticalGroup):
         if view_id == "todo-context":
             self.close_context()
         elif view_id != "todo-summary":
-            self.show_view("todo-context", "todo-menu")
+            self.show_view("todo-context")
 
     @staticmethod
     def todo_option_label(todo: TodoItem) -> str:
