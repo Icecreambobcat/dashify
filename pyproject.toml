@@ -1,7 +1,7 @@
 [project]
 name = "Dashify"
 description = "A configurable terminal dashboard built with Textual."
-version = "0.1.0"
+version = "0.1.2"
 authors = [
     {name = "Icecreambobcat",email = "icekingrex123@gmail.com"}
 ]
