@@ -42,6 +42,26 @@ class CpuGraphApp(App):
     def compose(self) -> ComposeResult:
         yield CpuGraph()
 
+
+class TiledLayoutApp(App):
+    def compose(self) -> ComposeResult:
+        left_column = VBox()
+        left_column.elements = [Clock(), Timer()]
+        right_column = VBox()
+        right_column.elements = [Stopwatch(), SystemMonitor()]
+
+        layout = HBox()
+        layout.elements = [left_column, right_column]
+        yield layout
+
+
+class HorizontalWidgetApp(App):
+    def compose(self) -> ComposeResult:
+        layout = HBox()
+        layout.elements = [Clock(), Stopwatch()]
+        yield layout
+
+
 class TestClock:
     def test_has_a_timezone_property(self):
         clock = Clock()
@@ -65,6 +85,70 @@ class TestClock:
                     str(clock.query_one(".timezone", Label).render()),
                 )
                 assert str(clock.query_one(".caption", Label).render()) == "Clock"
+
+        asyncio.run(run_test())
+
+
+class TestMetaContainers:
+    def test_tiles_expand_their_widgets(self):
+        async def run_test() -> None:
+            async with TiledLayoutApp().run_test(size=(120, 40)) as pilot:
+                layout = pilot.app.query_one(HBox)
+                left_column, right_column = pilot.app.query(VBox)
+                clock = left_column.query_one(Clock)
+                timer = left_column.query_one(Timer)
+                stopwatch = right_column.query_one(Stopwatch)
+                monitor = right_column.query_one(SystemMonitor)
+
+                assert layout.region.width == 120
+                assert layout.region.height == 40
+                assert left_column.region.width == 60
+                assert right_column.region.width == 60
+                assert left_column.region.height == 40
+                assert right_column.region.height == 40
+                assert clock.region.x == left_column.region.x
+                assert clock.region.width == left_column.region.width
+                assert clock.region.height == 20
+                assert timer.region.x == left_column.region.x
+                assert timer.region.width == left_column.region.width
+                assert timer.region.height == 20
+                assert stopwatch.region.x == right_column.region.x
+                assert stopwatch.region.width == right_column.region.width
+                assert stopwatch.region.height == 20
+                assert monitor.region.x == right_column.region.x
+                assert monitor.region.width == right_column.region.width
+                assert monitor.region.height == 20
+
+                for element, widget in (
+                    (clock.query_one(Digits), clock),
+                    (clock.query_one(".timezone", Label), clock),
+                    (clock.query_one(".caption", Label), clock),
+                    (timer.query_one(TimerDisplay), timer),
+                    (timer.query_one(".controls"), timer),
+                    (stopwatch.query_one(TimeDisplay), stopwatch),
+                    (stopwatch.query_one(".controls"), stopwatch),
+                    (monitor.query_one(CpuGraph), monitor),
+                ):
+                    assert element.region.width == 38
+                    assert element.region.x == widget.region.x + 11
+
+        asyncio.run(run_test())
+
+    def test_hbox_splits_direct_widgets_evenly(self):
+        async def run_test() -> None:
+            async with HorizontalWidgetApp().run_test(size=(120, 40)) as pilot:
+                layout = pilot.app.query_one(HBox)
+                clock = pilot.app.query_one(Clock)
+                stopwatch = pilot.app.query_one(Stopwatch)
+
+                assert layout.region.width == 120
+                assert layout.region.height == 40
+                assert clock.region.x == layout.region.x
+                assert clock.region.width == 60
+                assert clock.region.height == layout.region.height
+                assert stopwatch.region.x == layout.region.x + 60
+                assert stopwatch.region.width == 60
+                assert stopwatch.region.height == layout.region.height
 
         asyncio.run(run_test())
 

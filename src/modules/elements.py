@@ -36,21 +36,51 @@ padding: 1;
 
 # These classes provide expanding meta-containers accessible to the user.
 class VBox(Vertical):
-    """An expanding vertical container for dashboard elements."""
+    """An expanding vertical tile for dashboard elements."""
 
     elements: list[Container | Widget]
 
+    DEFAULT_CSS = """
+    VBox {
+        width: 1fr;
+        height: 1fr;
+    }
+
+    VBox .vbox-child {
+        width: 1fr;
+        height: 1fr;
+        margin: 0;
+    }
+    """
+
     def compose(self) -> ComposeResult:
-        yield from self.elements
+        for element in self.elements:
+            element.add_class("vbox-child")
+            yield element
 
 
 class HBox(Horizontal):
-    """An expanding horizontal container for dashboard elements."""
+    """An expanding horizontal layout for bordered dashboard tiles."""
 
     elements: list[Container | Widget]
 
+    DEFAULT_CSS = """
+    HBox {
+        width: 1fr;
+        height: 1fr;
+    }
+
+    HBox .hbox-child {
+        width: 1fr;
+        height: 1fr;
+        margin: 0;
+    }
+    """
+
     def compose(self) -> ComposeResult:
-        yield from self.elements
+        for element in self.elements:
+            element.add_class("hbox-child")
+            yield element
 
 
 # These classes provide widgets that the user can place and arrange through the meta-containers
@@ -102,6 +132,7 @@ class Stopwatch(VerticalGroup):
     DEFAULT_CSS = f"""
     Stopwatch {{
         {WIDGET_FRAME_CSS}
+        align: center middle;
     }}
 
     Stopwatch TimeDisplay {{
@@ -111,7 +142,7 @@ class Stopwatch(VerticalGroup):
     }}
 
     Stopwatch .controls {{
-        width: 1fr;
+        width: 38;
         height: 3;
         align: center middle;
         margin: 1 0 0 0;
@@ -316,6 +347,7 @@ class Timer(VerticalGroup):
     Timer {{
         {WIDGET_FRAME_CSS}
         height: 15;
+        align: center middle;
     }}
 
     Timer TimerDisplay {{
@@ -347,7 +379,7 @@ class Timer(VerticalGroup):
     }}
 
     Timer .controls {{
-        width: 1fr;
+        width: 38;
         height: 3;
         align: center middle;
         margin: 1 0 0 0;
@@ -576,8 +608,9 @@ class Clock(VerticalGroup):
 
     Clock .timezone,
     Clock .caption {{
-        width: 1fr;
+        width: 38;
         height: 1;
+        margin: 1 0 0 0;
         text-align: center;
         color: $text-muted;
     }}
