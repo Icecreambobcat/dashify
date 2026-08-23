@@ -305,7 +305,9 @@ class TestStopwatch:
                 assert stopwatch.region.width == 42
                 assert stopwatch.region.height == 13
                 assert display.size.width == 38
-                assert str(stopwatch.query_one(".caption", Label).render()) == "Stopwatch"
+                assert (
+                    str(stopwatch.query_one(".caption", Label).render()) == "Stopwatch"
+                )
                 assert not stopwatch.query_one("#reset", Button).disabled
 
         asyncio.run(run_test())

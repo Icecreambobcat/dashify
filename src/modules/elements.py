@@ -519,7 +519,9 @@ class CpuGraph(Static):
                 len(self.BAR_CHARACTERS) - 1,
                 int(load / 100 * len(self.BAR_CHARACTERS)),
             )
-            graph.append(self.BAR_CHARACTERS[character_index], style=self.colour_for(load))
+            graph.append(
+                self.BAR_CHARACTERS[character_index], style=self.colour_for(load)
+            )
         return graph
 
     @staticmethod
