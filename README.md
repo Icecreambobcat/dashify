@@ -213,7 +213,8 @@ Install the development dependencies and run all release checks with:
 
 ```console
 poetry install
-poetry run black --check src tests
+poetry run ruff check
+poetry run ruff format
 poetry run pyright
 poetry run pytest
 poetry check
