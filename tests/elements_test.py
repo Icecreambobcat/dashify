@@ -245,6 +245,8 @@ class TestSystemMonitor:
 
         asyncio.run(run_test())
 
+
+class TestTimerBehaviour:
     def test_invalid_input_is_rejected(self):
         async def run_test() -> None:
             async with TimerApp().run_test() as pilot:
@@ -268,16 +270,18 @@ class TestSystemMonitor:
 
                 timer.set_duration(1)
                 await pilot.click("#timer-control")
-                await pilot.pause(0.05)
+                await pilot.pause(0.25)
                 assert timer.mode == "running"
                 assert control.label == "Stop"
 
                 await pilot.click("#timer-control")
+                await pilot.pause(0.25)
                 assert timer.mode == "stopped"
                 assert control.label == "Start"
 
                 timer.set_duration(1)
                 await pilot.click("#timer-control")
+                await pilot.pause(0.25)
                 display.end_time = 0.0
                 display.update_time()
                 assert timer.mode == "complete"
@@ -285,6 +289,7 @@ class TestSystemMonitor:
                 assert control.label == "Reset"
                 assert control.variant == "warning"
 
+                await pilot.pause(0.25)
                 await pilot.click("#timer-control")
                 assert timer.mode == "stopped"
                 assert not timer.has_class("complete")

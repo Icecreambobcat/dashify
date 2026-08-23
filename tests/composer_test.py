@@ -99,6 +99,8 @@ def test_default_clock_timezone_is_supplied_by_the_app():
     assert isinstance(right_column, VBox)
     top_row = right_column.elements[0]
     assert isinstance(top_row, HBox)
-    clock = top_row.elements[0]
+    status_column = top_row.elements[0]
+    assert isinstance(status_column, VBox)
+    clock = status_column.elements[0]
     assert isinstance(clock, Clock)
     assert clock.timezone == "local"

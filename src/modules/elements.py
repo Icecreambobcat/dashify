@@ -184,10 +184,6 @@ class Stopwatch(VerticalGroup):
         text-style: bold;
     }}
 
-    Stopwatch .controls Button:focus {{
-        text-style: none;
-    }}
-
     Stopwatch #stop {{
         display: none;
     }}
@@ -412,10 +408,6 @@ class Timer(VerticalGroup):
         width: 1fr;
     }}
 
-    Timer .controls Button:focus {{
-        text-style: none;
-    }}
-
     Timer.complete {{
         border: round $warning;
     }}
@@ -447,7 +439,6 @@ class Timer(VerticalGroup):
         self.flash_timer = self.set_interval(
             0.5, lambda: self.toggle_class("flash"), pause=True
         )
-        self.query_one("#timer-control", Button).active_effect_duration = 0
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Run the action represented by the single control button."""
@@ -514,6 +505,7 @@ class Timer(VerticalGroup):
 
 
 class Spotify(Static): ...
+
 
 class CpuGraph(Static):
     """A fixed-width, threshold-coloured history graph of CPU utilisation."""
