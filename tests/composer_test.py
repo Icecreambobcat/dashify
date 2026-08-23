@@ -66,6 +66,14 @@ def test_shows_a_root_warning_for_invalid_root_options():
     assert compose_from_config(config) is None
 
 
+def test_rejects_an_unresolvable_clock_timezone():
+    config = Config.model_validate(
+        {"kind": "Clock", "opts": {"timezone": "Not/A_Timezone"}}
+    )
+
+    assert compose_from_config(config) is None
+
+
 def test_shows_a_warning_for_a_malformed_child_config():
     config = Config.model_validate(
         {

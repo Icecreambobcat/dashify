@@ -1,10 +1,47 @@
 from modules.composer import compose_from_config
 from modules.conf import Config
 from modules.weather import Weather
-from modules.weather_service import WeatherError, WeatherService
+from modules.weather_service import WeatherError, WeatherReading, WeatherService
 
 
 class TestWeatherService:
+    def test_fetches_and_normalises_current_conditions(self, monkeypatch):
+        responses = iter(
+            [
+                {
+                    "results": [
+                        {
+                            "name": "Sydney",
+                            "admin1": "New South Wales",
+                            "country": "Australia",
+                            "latitude": -33.87,
+                            "longitude": 151.21,
+                        }
+                    ]
+                },
+                {
+                    "current": {
+                        "temperature_2m": 21.4,
+                        "apparent_temperature": 20.8,
+                        "weather_code": 2,
+                        "wind_speed_10m": 13.2,
+                    }
+                },
+            ]
+        )
+        monkeypatch.setattr(WeatherService, "_request", lambda *_: next(responses))
+
+        assert WeatherService().get_current_weather(
+            "Sydney", "metric"
+        ) == WeatherReading(
+            location="Sydney, New South Wales, Australia",
+            temperature=21.4,
+            apparent_temperature=20.8,
+            wind_speed=13.2,
+            weather_code=2,
+            units="metric",
+        )
+
     def test_formats_resolved_location(self):
         assert (
             WeatherService._location_name(
