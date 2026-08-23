@@ -56,7 +56,7 @@ Users who installed from PyPI can download the same versioned default:
 
 ```console
 mkdir -p ~/.config/dashify
-curl -L https://raw.githubusercontent.com/Icecreambobcat/dashify/v0.1.0/defaults/dashify.toml \
+curl -L https://raw.githubusercontent.com/Icecreambobcat/dashify/v0.1.2/defaults/dashify.toml \
   -o ~/.config/dashify/dashify.toml
 ```
 
