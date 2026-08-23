@@ -504,9 +504,6 @@ class Timer(VerticalGroup):
         control.variant = variant
 
 
-class Spotify(Static): ...
-
-
 class CpuGraph(Static):
     """A fixed-width, threshold-coloured history graph of CPU utilisation."""
 
