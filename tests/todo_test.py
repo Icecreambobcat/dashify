@@ -1,8 +1,10 @@
 import asyncio
 from pathlib import Path
+import sqlite3
 
+import pytest
 from textual.app import App, ComposeResult
-from textual.widgets import ContentSwitcher, Input, TextArea
+from textual.widgets import ContentSwitcher, Input, Static, TextArea
 
 from modules.elements import Todo
 from modules.todo_store import TodoStore
@@ -18,6 +20,16 @@ class TodoApp(App):
 
 
 class TestTodoStore:
+    def test_reading_a_missing_database_does_not_create_it(self, tmp_path: Path):
+        store = TodoStore(tmp_path / "todo.db")
+
+        with pytest.raises(FileNotFoundError):
+            store.list_todos()
+
+        assert not store.exists()
+        store.delete_database()
+        assert not store.exists()
+
     def test_persists_todos_in_canonical_order(self, tmp_path: Path):
         store = TodoStore(tmp_path / "todo.db")
 
@@ -38,6 +50,13 @@ class TestTodoStore:
 
         store.delete_database()
         assert not store.exists()
+
+    def test_database_rejects_blank_titles(self, tmp_path: Path):
+        store = TodoStore(tmp_path / "todo.db")
+        store.initialise()
+
+        with pytest.raises(sqlite3.IntegrityError):
+            store.create_todo("   ", None, None)
 
 
 class TestTodo:
@@ -69,6 +88,23 @@ class TestTodo:
 
                 assert [item.title for item in todo.store.list_todos()] == ["Buy milk"]
                 assert views.current == "todo-context"
+
+                todo.open_form()
+                todo.save_todo()
+                assert (
+                    str(todo.query_one("#todo-form-error", Static).render())
+                    == "Title is required."
+                )
+                assert [item.title for item in todo.store.list_todos()] == ["Buy milk"]
+
+                todo.query_one("#todo-title-input", Input).value = "Pay rent"
+                todo.query_one("#todo-due-date-input", Input).value = "24-08-2026"
+                todo.save_todo()
+                assert (
+                    str(todo.query_one("#todo-form-error", Static).render())
+                    == "Due date must use YYYY-MM-DD."
+                )
+                assert [item.title for item in todo.store.list_todos()] == ["Buy milk"]
 
                 todo.open_selector("delete")
                 todo.select_todo(1)
