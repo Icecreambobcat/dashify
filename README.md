@@ -4,13 +4,12 @@ A new-generation dashboard for your terminal, built on the [Textual](https://git
 
 ---
 
-## Project overview
+## Overview
 
-- A progress tracker for this project is available [here](https://github.com/users/Icecreambobcat/projects/3).
-- Dependency management is handled via [Poetry](https://python-poetry.org/).
+Dashify is a configurable terminal dashboard built with Textual. Its TOML
+layout supports nested horizontal and vertical tiles, builtin clock, timer,
+stopwatch, system-monitor, and Todo widgets, and safe warnings for invalid
+configuration.
 
-> [!NOTE]
-> This project is still being conceptualised in design and structure.
-> Active development will commence shortly, and this page will be updated accordingly.
->
-> Design documents will be made available in due course.
+Dependencies are managed with [Poetry](https://python-poetry.org/). Start with
+the documented layout example in `defaults/dashify.toml`.
