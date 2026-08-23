@@ -5,6 +5,7 @@ from typing import Any
 from modules.conf import Config, INVALID_CONFIG_KIND
 from modules.custom import Custom
 from modules.todo import Todo
+from modules.weather import Weather
 from modules.elements import (
     Clock,
     HBox,
@@ -26,6 +27,7 @@ ELEMENT_TYPES: dict[str, type[Widget]] = {
     "timer": Timer,
     "todo": Todo,
     "vbox": VBox,
+    "weather": Weather,
 }
 
 
@@ -34,7 +36,9 @@ def compose_from_config(conf: Config, *, is_child: bool = False) -> Widget | Non
     if conf.kind == INVALID_CONFIG_KIND:
         if not is_child:
             return None
-        return InvalidConfig((conf.opts or {}).get("message", "Invalid configuration"))
+        return InvalidConfig(
+            str((conf.opts or {}).get("message", "Invalid configuration"))
+        )
 
     element_type = ELEMENT_TYPES.get(conf.kind.casefold())
     if element_type is None:
@@ -43,6 +47,9 @@ def compose_from_config(conf: Config, *, is_child: bool = False) -> Widget | Non
     element = element_type()
     if error := apply_options(element, conf.opts):
         return InvalidConfig(error) if is_child else None
+    validator = getattr(element, "validate_options", None)
+    if callable(validator) and (error := validator()):
+        return InvalidConfig(str(error)) if is_child else None
 
     if isinstance(element, (HBox, VBox)):
         element.elements = [

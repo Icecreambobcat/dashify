@@ -1,6 +1,5 @@
-# The root layout mirrors src/modules/app.py: two vertical columns. The left
-# column contains a timer and todos; the right nests a clock and stopwatch in
-# a horizontal box above the system monitor.
+# The root layout has a timer and todos on the left. The right column nests a
+# clock and system monitor beside a stopwatch, above the weather widget.
 [widgets]
 kind = "Hbox"
 
@@ -24,25 +23,33 @@ kind = "Todo"
 # switches and text below to enable them in this one-layer custom widget.
 # [widgets.left.custom]
 # kind = "Custom"
-# opts = { text = "Focus time", clock = true, timezone = "Australia/Sydney", timer = true, stopwatch = true, system_monitor = true, todo = true }
+# opts = { text = "Focus time", clock = true, timezone = "Australia/Sydney", timer = true, stopwatch = true, system_monitor = true, todo = true, weather = true }
 
-# The right column's top tile is a 50/50 horizontal split of a clock and
-# stopwatch.
+# The right column's top tile places the clock and system monitor in one
+# vertical tile beside the stopwatch.
 [widgets.right.top]
 kind = "Hbox"
 
 # Widget defaults are supplied by the app. Uncomment opts below to override the
 # Clock's local timezone with "UTC", a UTC offset, or an IANA timezone name.
-[widgets.right.top.clock]
+[widgets.right.top.status]
+kind = "Vbox"
+
+[widgets.right.top.status.clock]
 kind = "Clock"
 # opts = { timezone = "UTC+0" }
+
+# A live CPU utilisation monitor. The graph retains the latest 38 samples,
+# updates once per second, and marks low, medium, and high load in green,
+# yellow, and red respectively.
+[widgets.right.top.status.system_monitor]
+kind = "SystemMonitor"
 
 # A stopwatch with Start, Stop, and Reset controls. It has no options yet.
 [widgets.right.top.stopwatch]
 kind = "Stopwatch"
 
-# A live CPU utilisation monitor. The graph retains the latest 38 samples,
-# updates once per second, and marks low, medium, and high load in green,
-# yellow, and red respectively.
-[widgets.right.system_monitor]
-kind = "SystemMonitor"
+# Current weather for the app-supplied default location. Use inline opts to
+# override location, units (metric or imperial), or refresh_minutes.
+[widgets.right.weather]
+kind = "Weather"

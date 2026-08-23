@@ -8,6 +8,7 @@ from modules.conf import Config
 from modules.custom import Custom
 from modules.elements import Clock, Stopwatch, SystemMonitor, Timer
 from modules.todo import Todo
+from modules.weather import Weather
 
 
 class CustomApp(App):
@@ -20,6 +21,7 @@ class CustomApp(App):
         custom.stopwatch = True
         custom.system_monitor = True
         custom.todo = True
+        custom.weather = True
         yield custom
 
 
@@ -43,6 +45,7 @@ class TestCustom:
                     Stopwatch,
                     SystemMonitor,
                     Todo,
+                    Weather,
                 ]
                 assert custom.query_one(Clock).timezone == "UTC"
                 assert all(child.has_class("custom-element") for child in children[1:])
@@ -63,7 +66,12 @@ class TestCustom:
             Config.model_validate(
                 {
                     "kind": "Custom",
-                    "opts": {"text": "Work", "clock": True, "timezone": "UTC"},
+                    "opts": {
+                        "text": "Work",
+                        "clock": True,
+                        "timezone": "UTC",
+                        "weather": True,
+                    },
                 }
             )
         )
@@ -72,6 +80,7 @@ class TestCustom:
         assert custom.text == "Work"
         assert custom.clock
         assert custom.timezone == "UTC"
+        assert custom.weather
 
     def test_horizontal_layout_option_is_rejected(self):
         custom = compose_from_config(

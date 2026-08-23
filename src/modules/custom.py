@@ -6,6 +6,7 @@ from textual.widgets import Label, Static
 
 from modules.elements import Clock, Stopwatch, SystemMonitor, Timer
 from modules.todo import Todo
+from modules.weather import Weather
 
 
 class Custom(Vertical):
@@ -17,6 +18,7 @@ class Custom(Vertical):
     stopwatch = False
     system_monitor = False
     todo = False
+    weather = False
     timezone = "local"
 
     DEFAULT_CSS = """
@@ -63,9 +65,9 @@ class Custom(Vertical):
 
     def enabled_elements(
         self,
-    ) -> list[Clock | Timer | Stopwatch | SystemMonitor | Todo]:
+    ) -> list[Clock | Timer | Stopwatch | SystemMonitor | Todo | Weather]:
         """Return enabled widgets in the documented fixed display order."""
-        elements: list[Clock | Timer | Stopwatch | SystemMonitor | Todo] = []
+        elements: list[Clock | Timer | Stopwatch | SystemMonitor | Todo | Weather] = []
         if self.clock:
             clock = Clock()
             clock.timezone = self.timezone
@@ -78,4 +80,6 @@ class Custom(Vertical):
             elements.append(SystemMonitor())
         if self.todo:
             elements.append(Todo())
+        if self.weather:
+            elements.append(Weather())
         return elements
