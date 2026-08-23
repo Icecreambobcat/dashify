@@ -6,7 +6,7 @@ import pytest
 from textual.app import App, ComposeResult
 from textual.widgets import ContentSwitcher, Input, Static, TextArea
 
-from modules.elements import Todo
+from modules.todo import Todo
 from modules.todo_store import TodoStore
 
 
