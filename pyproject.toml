@@ -23,7 +23,8 @@ build-backend = "poetry.core.masonry.api"
 [dependency-groups]
 dev = [
     "pytest (>=9.1.1,<10.0.0)",
-    "pyinstaller (>=6.22.2,<7.0.0)"
+    "pyinstaller (>=6.22.2,<7.0.0)",
+    "pyright (>=1.1.411,<2.0.0)"
 ]
 
 [project.scripts]

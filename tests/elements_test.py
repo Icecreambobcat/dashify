@@ -270,11 +270,11 @@ class TestSystemMonitor:
                 await pilot.click("#timer-control")
                 await pilot.pause(0.05)
                 assert timer.mode == "running"
-                assert control.label.plain == "Stop"
+                assert control.label == "Stop"
 
                 await pilot.click("#timer-control")
                 assert timer.mode == "stopped"
-                assert control.label.plain == "Start"
+                assert control.label == "Start"
 
                 timer.set_duration(1)
                 await pilot.click("#timer-control")
@@ -282,7 +282,7 @@ class TestSystemMonitor:
                 display.update_time()
                 assert timer.mode == "complete"
                 assert timer.has_class("complete")
-                assert control.label.plain == "Reset"
+                assert control.label == "Reset"
                 assert control.variant == "warning"
 
                 await pilot.click("#timer-control")
