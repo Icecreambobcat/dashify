@@ -24,7 +24,8 @@ build-backend = "poetry.core.masonry.api"
 dev = [
     "pytest (>=9.1.1,<10.0.0)",
     "pyinstaller (>=6.22.2,<7.0.0)",
-    "pyright (>=1.1.411,<2.0.0)"
+    "pyright (>=1.1.411,<2.0.0)",
+    "black (>=26.5.1,<27.0.0)"
 ]
 
 [project.scripts]
@@ -38,3 +39,6 @@ packages = [
 include = [
     { path = "defaults/dashify.toml", format = ["sdist", "wheel"] },
 ]
+
+[tool.black]
+target-version = ["py314"]
