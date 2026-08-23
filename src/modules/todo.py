@@ -95,6 +95,7 @@ class Todo(VerticalGroup):
         """Compose the summary and every full-widget interaction view."""
         with ContentSwitcher(initial="todo-summary", id="todo-views"):
             with Vertical(id="todo-summary", classes="todo-view"):
+                yield Label("Todos", id="todo-widget-title", classes="todo-title")
                 with VerticalScroll(classes="todo-list"):
                     yield Static(id="todo-summary-list", markup=False)
                 with Horizontal(classes="todo-actions"):
@@ -177,7 +178,7 @@ class Todo(VerticalGroup):
                     )
 
             with Vertical(id="todo-clear-confirm", classes="todo-view"):
-                yield Label("Delete database", classes="todo-title")
+                yield Label("Delete todo database", classes="todo-title")
                 yield Static(
                     "This permanently deletes every todo and cannot be undone.",
                     classes="todo-warning",

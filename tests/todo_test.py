@@ -4,7 +4,7 @@ import sqlite3
 
 import pytest
 from textual.app import App, ComposeResult
-from textual.widgets import ContentSwitcher, Input, Static, TextArea
+from textual.widgets import ContentSwitcher, Input, Label, Static, TextArea
 
 from modules.todo import Todo
 from modules.todo_store import TodoStore
@@ -60,6 +60,17 @@ class TestTodoStore:
 
 
 class TestTodo:
+    def test_displays_title_in_summary_heading(self, tmp_path: Path):
+        async def run_test() -> None:
+            app = TodoApp()
+            app.database_path = tmp_path / "todo.db"
+            async with app.run_test():
+                title = app.query_one("#todo-widget-title", Label)
+
+                assert str(title.render()) == "Todos"
+
+        asyncio.run(run_test())
+
     def test_database_gate_add_delete_and_clear_flow(self, tmp_path: Path):
         async def run_test() -> None:
             app = TodoApp()

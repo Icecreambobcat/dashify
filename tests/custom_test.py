@@ -1,5 +1,7 @@
 import asyncio
+from pathlib import Path
 
+import pytest
 from textual.app import App, ComposeResult
 from textual.widgets import Label, Static
 
@@ -31,7 +33,11 @@ class EmptyCustomApp(App):
 
 
 class TestCustom:
-    def test_renders_enabled_elements_in_fixed_vertical_order(self):
+    def test_renders_enabled_elements_in_fixed_vertical_order(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        monkeypatch.setattr(Todo, "database_path", tmp_path / "todo.db")
+
         async def run_test() -> None:
             async with CustomApp().run_test(size=(100, 50)) as pilot:
                 custom = pilot.app.query_one(Custom)
