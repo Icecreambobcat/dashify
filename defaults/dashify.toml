@@ -1,3 +1,6 @@
+# The root layout mirrors src/modules/app.py: two vertical columns. The left
+# column contains a timer and todos; the right nests a clock and stopwatch in
+# a horizontal box above the system monitor.
 [widgets]
 kind = "Hbox"
 
@@ -7,9 +10,33 @@ kind = "Vbox"
 [widgets.right]
 kind = "Vbox"
 
-# repeat this for the 4 corners
-[widgets.left.top]
+# A countdown timer. Click the digits while stopped, enter up to six digits in
+# HHMMSS order, then press Enter to confirm the duration.
+[widgets.left.timer]
+kind = "Timer"
+
+# Persistent local todos. Select Manage todos in the widget to create and use
+# the SQLite database at ~/.local/state/dashify/todo.db.
+[widgets.left.todo]
+kind = "Todo"
+
+# The right column's top tile is a 50/50 horizontal split of a clock and
+# stopwatch.
+[widgets.right.top]
+kind = "Hbox"
+
+# Widget defaults are supplied by the app. Uncomment opts below to override the
+# Clock's local timezone with "UTC", a UTC offset, or an IANA timezone name.
+[widgets.right.top.clock]
 kind = "Clock"
-opts = {
-  timezone = "UTC+0",
-}
+# opts = { timezone = "UTC+0" }
+
+# A stopwatch with Start, Stop, and Reset controls. It has no options yet.
+[widgets.right.top.stopwatch]
+kind = "Stopwatch"
+
+# A live CPU utilisation monitor. The graph retains the latest 38 samples,
+# updates once per second, and marks low, medium, and high load in green,
+# yellow, and red respectively.
+[widgets.right.system_monitor]
+kind = "SystemMonitor"
