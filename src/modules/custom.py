@@ -52,7 +52,7 @@ class Custom(Vertical):
     def compose(self) -> ComposeResult:
         """Compose the enabled builtin widgets in their fixed vertical order."""
         if self.text:
-            yield Label(self.text, classes="custom-text")
+            yield Label(self.text, classes="custom-text", markup=False)
 
         elements = self.enabled_elements()
         if not elements:

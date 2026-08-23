@@ -8,6 +8,9 @@ from modules.conf import make_config
 
 
 class Dashify(App):
+    """Compose and run the configured terminal dashboard."""
+
+    TITLE = "Dashify"
     BINDINGS = [Binding("ctrl+q", "quit", "Quit", key_display="^q")]
 
     DEFAULT_CSS = """
@@ -29,6 +32,7 @@ class Dashify(App):
     """
 
     def compose(self) -> ComposeResult:
+        """Compose the configured layout or a recoverable warning screen."""
         yield Header()
         config = make_config()
         if config is not None and (layout := compose_from_config(config)) is not None:

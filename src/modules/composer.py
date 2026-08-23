@@ -1,6 +1,6 @@
-from textual.widget import Widget
-
 from typing import Any
+
+from textual.widget import Widget
 
 from modules.conf import Config, INVALID_CONFIG_KIND
 from modules.custom import Custom
@@ -35,19 +35,23 @@ def compose_from_config(conf: Config, *, is_child: bool = False) -> Widget | Non
         if not is_child:
             return None
         return InvalidConfig(
-            str((conf.opts or {}).get("message", "Invalid configuration"))
+            str((conf.opts or {}).get("message", "Invalid configuration")), markup=False
         )
 
     element_type = ELEMENT_TYPES.get(conf.kind.casefold())
     if element_type is None:
-        return InvalidConfig(f"Unsupported widget: {conf.kind}") if is_child else None
+        return (
+            InvalidConfig(f"Unsupported widget: {conf.kind}", markup=False)
+            if is_child
+            else None
+        )
 
     element = element_type()
     if error := apply_options(element, conf.opts):
-        return InvalidConfig(error) if is_child else None
+        return InvalidConfig(error, markup=False) if is_child else None
     validator = getattr(element, "validate_options", None)
     if callable(validator) and (error := validator()):
-        return InvalidConfig(str(error)) if is_child else None
+        return InvalidConfig(str(error), markup=False) if is_child else None
 
     if isinstance(element, (HBox, VBox)):
         element.elements = [

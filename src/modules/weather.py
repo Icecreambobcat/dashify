@@ -28,19 +28,22 @@ class Weather(VerticalGroup):
     """
 
     def compose(self) -> ComposeResult:
-        yield Label(classes="weather-location")
-        yield Static("Loading weather…", classes="weather-current")
-        yield Static(classes="weather-detail")
-        yield Static(classes="weather-error")
+        """Compose weather values, refresh control, and caption."""
+        yield Label(classes="weather-location", markup=False)
+        yield Static("Loading weather…", classes="weather-current", markup=False)
+        yield Static(classes="weather-detail", markup=False)
+        yield Static(classes="weather-error", markup=False)
         with HorizontalGroup(classes="controls"):
             yield Button("Refresh", id="weather-refresh")
         yield Label("Weather", classes="caption")
 
     def on_mount(self) -> None:
+        """Fetch immediately and schedule the configured refresh interval."""
         self.request_refresh()
         self.set_interval(self.refresh_minutes * 60, self.request_refresh)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
+        """Refresh current conditions when the refresh button is pressed."""
         if event.button.id == "weather-refresh":
             self.request_refresh()
 

@@ -1,19 +1,30 @@
 [project]
 name = "Dashify"
-description = "A new-generation terminal dashboard."
+description = "A configurable terminal dashboard built with Textual."
 version = "0.1.0"
 authors = [
     {name = "Icecreambobcat",email = "icekingrex123@gmail.com"}
 ]
-license = {text = "MIT"}
+license = "MIT"
 readme = "README.md"
 requires-python = ">=3.14,<3.16"
+keywords = ["dashboard", "terminal", "textual", "tui"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Operating System :: OS Independent",
+    "Topic :: Utilities",
+]
 dependencies = [
     "textual (>=7.5.0,<8.0.0)",
     "tomlkit (>=0.15.0,<0.16.0)",
     "pydantic (>=2.13.4,<3.0.0)",
     "psutil (>=7.2.2,<8.0.0)"
 ]
+
+[project.urls]
+Repository = "https://github.com/Icecreambobcat/dashify"
+Issues = "https://github.com/Icecreambobcat/dashify/issues"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

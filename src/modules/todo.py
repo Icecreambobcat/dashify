@@ -3,6 +3,7 @@
 from datetime import date
 from pathlib import Path
 
+from rich.text import Text
 from textual import events
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -95,7 +96,7 @@ class Todo(VerticalGroup):
         with ContentSwitcher(initial="todo-summary", id="todo-views"):
             with Vertical(id="todo-summary", classes="todo-view"):
                 with VerticalScroll(classes="todo-list"):
-                    yield Static(id="todo-summary-list")
+                    yield Static(id="todo-summary-list", markup=False)
                 with Horizontal(classes="todo-actions"):
                     yield Button("Manage todos", id="todo-manage")
 
@@ -159,7 +160,7 @@ class Todo(VerticalGroup):
             with Vertical(id="todo-detail", classes="todo-view"):
                 yield Label("Todo", classes="todo-title")
                 with VerticalScroll(classes="todo-list"):
-                    yield Static(id="todo-detail-content")
+                    yield Static(id="todo-detail-content", markup=False)
                 with Horizontal(classes="todo-actions"):
                     yield TodoInitialFocusButton("Back", id="todo-detail-back")
 
@@ -187,9 +188,11 @@ class Todo(VerticalGroup):
         yield Label("Todo", classes="caption")
 
     def on_mount(self) -> None:
+        """Render the persisted summary when the widget first mounts."""
         self.refresh_summary()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
+        """Dispatch buttons in the currently visible Todo view."""
         button_id = event.button.id
         if button_id is None:
             return
@@ -213,6 +216,7 @@ class Todo(VerticalGroup):
             action()
 
     def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
+        """Continue the menu or selection action chosen by the user."""
         option_id = event.option_id
         if option_id is None:
             return
@@ -236,15 +240,18 @@ class Todo(VerticalGroup):
 
     @property
     def store(self) -> TodoStore:
+        """Return a short-lived store for the configured database path."""
         return TodoStore(self.database_path)
 
     def ensure_database(self) -> None:
+        """Continue an action or ask permission to create its database."""
         if self.store.exists():
             self.continue_action()
         else:
             self.show_view("todo-create-database")
 
     def continue_action(self) -> None:
+        """Open the view associated with the pending context-menu action."""
         if self.pending_action == "add":
             self.open_form()
         elif self.pending_action in {"browse", "edit", "delete"}:
@@ -253,11 +260,13 @@ class Todo(VerticalGroup):
             self.show_view("todo-clear-confirm")
 
     def open_selector(self, mode: str) -> None:
+        """Show canonically ordered todos for browsing, editing, or deletion."""
         self.selection_mode = mode
         self.query_one("#todo-selector-title", Label).update(f"{mode.title()} todo")
         todos = self.store.list_todos()
         options = [
-            Option(self.todo_option_label(todo), id=f"todo-{todo.id}") for todo in todos
+            Option(Text(self.todo_option_label(todo)), id=f"todo-{todo.id}")
+            for todo in todos
         ]
         if not options:
             options = [Option("No todos available", id="empty", disabled=True)]
@@ -267,6 +276,7 @@ class Todo(VerticalGroup):
         self.show_view("todo-selector")
 
     def select_todo(self, todo_id: int) -> None:
+        """Open the selected todo in the view required by the current mode."""
         todo = self.store.get_todo(todo_id)
         if todo is None:
             self.open_selector(self.selection_mode or "browse")
@@ -280,6 +290,7 @@ class Todo(VerticalGroup):
             self.show_view("todo-delete-confirm")
 
     def open_form(self, todo: TodoItem | None = None) -> None:
+        """Open the shared form for a new or existing todo."""
         self.selected_todo_id = todo.id if todo else None
         self.query_one("#todo-form-title", Label).update(
             "Edit todo" if todo else "Add todo"
@@ -295,6 +306,7 @@ class Todo(VerticalGroup):
         self.show_view("todo-form")
 
     def save_todo(self) -> None:
+        """Validate and persist values from the add/edit form."""
         title = self.query_one("#todo-title-input", Input).value.strip()
         notes = self.query_one("#todo-notes-input", TextArea).text.strip() or None
         due_date = self.query_one("#todo-due-date-input", Input).value.strip() or None
@@ -316,12 +328,14 @@ class Todo(VerticalGroup):
         self.show_view("todo-context")
 
     def show_detail(self, todo: TodoItem) -> None:
+        """Display all fields for a selected todo."""
         self.query_one("#todo-detail-content", Static).update(
             f"{todo.title}\n\nDue: {todo.due_date or 'No due date'}\n\n{todo.notes or 'No notes'}"
         )
         self.show_view("todo-detail")
 
     def refresh_summary(self) -> None:
+        """Refresh the non-interactive, scrollable todo summary."""
         summary = self.query_one("#todo-summary-list", Static)
         if not self.store.exists():
             summary.update("No todo database yet.\n\nSelect Manage todos to begin.")
@@ -334,18 +348,21 @@ class Todo(VerticalGroup):
         )
 
     def show_view(self, view_id: str) -> None:
+        """Switch views and indicate whether keyboard input is captured."""
         views = self.query_one(ContentSwitcher)
         views.current = view_id
         views.get_child_by_id(view_id).display = True
         self.set_class(view_id != "todo-summary", "interacting")
 
     def close_context(self) -> None:
+        """Clear interaction state and return to the summary."""
         self.pending_action = self.selection_mode = None
         self.selected_todo_id = None
         self.refresh_summary()
         self.show_view("todo-summary")
 
     def action_back(self) -> None:
+        """Move towards the summary when Escape is pressed."""
         if self.query_one(ContentSwitcher).current == "todo-context":
             self.close_context()
         elif self.query_one(ContentSwitcher).current != "todo-summary":
@@ -353,6 +370,7 @@ class Todo(VerticalGroup):
 
     @staticmethod
     def todo_option_label(todo: TodoItem) -> str:
+        """Format a todo for summary and selector views."""
         return f"{todo.id}. {todo.title}" + (
             f" — due {todo.due_date}" if todo.due_date else ""
         )

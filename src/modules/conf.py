@@ -26,8 +26,8 @@ def flatten_config(config: object) -> dict[str, Any] | None:
     """Normalise a TOML widget table, ignoring malformed nodes safely.
 
     Only ``HBox`` and ``VBox`` treat named nested tables as child widgets.
-    Named tables on all other widget kinds are ignored, as are invalid ``opts``
-    values and child tables without a usable ``kind``.
+    Named tables on all other widget kinds are ignored. Invalid ``opts`` values
+    and child tables without a usable ``kind`` become in-layout warnings.
     """
     if not isinstance(config, dict):
         return None

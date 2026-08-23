@@ -1,38 +1,30 @@
 """Textual containers and built-in dashboard widgets."""
 
-from datetime import date, datetime, timedelta, timezone as datetime_timezone
+from datetime import datetime, timedelta, timezone as datetime_timezone
 from functools import partial
 from math import ceil
-from pathlib import Path
 from time import monotonic
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import psutil
 from rich.text import Text
 from textual import events
 from textual.app import ComposeResult
-from textual.binding import Binding
 from textual.containers import (
     Container,
     Horizontal,
     HorizontalGroup,
     Vertical,
     VerticalGroup,
-    VerticalScroll,
 )
 from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import (
     Button,
-    ContentSwitcher,
     Digits,
-    Input,
     Label,
-    OptionList,
     Static,
-    TextArea,
 )
-from textual.widgets.option_list import Option
 
 # Include this declaration in every built-in widget's DEFAULT_CSS to keep the
 # dashboard's widgets visually consistent.
@@ -629,7 +621,7 @@ class Clock(VerticalGroup):
     def compose(self) -> ComposeResult:
         """Compose the time display and its descriptive labels."""
         yield Digits()
-        yield Label(classes="timezone")
+        yield Label(classes="timezone", markup=False)
         yield Label("Clock", classes="caption")
 
     def on_mount(self) -> None:
@@ -641,6 +633,14 @@ class Clock(VerticalGroup):
         """Refresh the display when configuration changes its timezone."""
         if self.is_mounted:
             self.update_clock()
+
+    def validate_options(self) -> str | None:
+        """Reject timezone values that cannot be resolved before mounting."""
+        try:
+            self._get_timezone()
+        except OverflowError, ValueError, ZoneInfoNotFoundError:
+            return "Invalid clock options"
+        return None
 
     def update_clock(self) -> None:
         """Render the current time in the configured timezone."""
