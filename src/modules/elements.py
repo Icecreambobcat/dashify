@@ -18,6 +18,9 @@ from textual.containers import (
 from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import Button, Digits, Label, Static
+
+# import spotipy
+
 # Include this declaration in every built-in widget's DEFAULT_CSS to keep the
 # dashboard's widgets visually consistent.
 WIDGET_FRAME_CSS = """
@@ -169,11 +172,13 @@ class Stopwatch(VerticalGroup):
             time_display.reset()
 
 
+class TimerDisplay(Digits):
     """A clickable countdown display that accepts ``HH:MM:SS`` input."""
 
     can_focus = True
+    end_time: float = 0.0
     remaining = reactive(0.0)
-    duration = reactive(0.0)
+    duration = reactive(0)
     editing = reactive(False)
 
     def on_mount(self) -> None:
@@ -209,10 +214,10 @@ class Stopwatch(VerticalGroup):
             self.render_input()
             event.stop()
 
-    def set_duration(self, seconds: float) -> None:
+    def set_duration(self, seconds: int) -> None:
         """Set a valid countdown duration and leave edit mode."""
         self.duration = seconds
-        self.remaining = seconds
+        self.remaining = float(seconds)
         self.editing = False
         self.render_time()
 
@@ -231,7 +236,7 @@ class Stopwatch(VerticalGroup):
     def reset(self) -> None:
         """Restore the countdown to its configured duration."""
         self.update_timer.pause()
-        self.remaining = self.duration
+        self.remaining = float(self.duration)
         self.render_time()
 
     def update_time(self) -> None:
@@ -298,6 +303,167 @@ class Stopwatch(VerticalGroup):
 
         total_seconds = hours * 3600 + minutes * 60 + seconds
         return total_seconds if total_seconds > 0 else None
+
+
+class Timer(VerticalGroup):
+    """A configurable countdown timer with a single stateful control button."""
+
+    mode = reactive("stopped")
+
+    DEFAULT_CSS = f"""
+    Timer {{
+        {WIDGET_FRAME_CSS}
+        height: 15;
+    }}
+
+    Timer TimerDisplay {{
+        width: 38;
+        height: 3;
+        text-align: center;
+        pointer: pointer;
+    }}
+
+    Timer TimerDisplay.editing {{
+        background: $primary-muted;
+    }}
+
+    Timer .hint,
+    Timer .caption {{
+        width: 38;
+        height: 1;
+        text-align: center;
+        color: $text-muted;
+    }}
+
+    Timer .hint {{
+        margin: 1 0 0 0;
+    }}
+
+    Timer .caption {{
+        margin: 1 0 0 0;
+        text-style: bold;
+    }}
+
+    Timer .controls {{
+        width: 1fr;
+        height: 3;
+        align: center middle;
+        margin: 1 0 0 0;
+    }}
+
+    Timer .controls Button {{
+        width: 1fr;
+    }}
+
+    Timer .controls Button:focus {{
+        text-style: none;
+    }}
+
+    Timer.complete {{
+        border: round $warning;
+    }}
+
+    Timer.complete.flash {{
+        border: round $warning 30%;
+    }}
+
+    TimerDisplay.invalid {{
+        color: $error;
+    }}
+    """
+
+    @property
+    def is_running(self) -> bool:
+        """Whether the countdown is currently running."""
+        return self.mode == "running"
+
+    def compose(self) -> ComposeResult:
+        """Compose the countdown, edit hint, control, and caption."""
+        yield TimerDisplay()
+        yield Label("Click digits to edit; <CR> to confirm", classes="hint")
+        with HorizontalGroup(classes="controls"):
+            yield Button("Start", id="timer-control", variant="success")
+        yield Label("Timer", classes="caption")
+
+    def on_mount(self) -> None:
+        """Create a paused timer used to flash the completion border."""
+        self.flash_timer = self.set_interval(
+            0.5, lambda: self.toggle_class("flash"), pause=True
+        )
+        self.query_one("#timer-control", Button).active_effect_duration = 0
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        """Run the action represented by the single control button."""
+        if event.button.id != "timer-control":
+            return
+
+        if self.mode == "running":
+            self.stop()
+        elif self.mode == "complete":
+            self.reset()
+        else:
+            self.start()
+
+    def prepare_edit(self) -> None:
+        """Clear the current value and make the stopped timer editable."""
+        if self.mode == "complete":
+            self.flash_timer.pause()
+            self.remove_class("complete", "flash")
+        self.mode = "stopped"
+        self.query_one(TimerDisplay).set_duration(0)
+        self.set_control("Start", "success")
+
+    def set_duration(self, seconds: int) -> None:
+        """Store a valid duration supplied by the editable display."""
+        self.query_one(TimerDisplay).set_duration(seconds)
+        self.mode = "stopped"
+        self.set_control("Start", "success")
+
+    def start(self) -> None:
+        """Start a configured countdown."""
+        display = self.query_one(TimerDisplay)
+        if display.remaining <= 0:
+            return
+        display.start()
+        self.mode = "running"
+        self.set_control("Stop", "error")
+
+    def stop(self) -> None:
+        """Stop the countdown and allow its value to be edited again."""
+        self.query_one(TimerDisplay).stop()
+        self.mode = "stopped"
+        self.set_control("Start", "success")
+
+    def complete(self) -> None:
+        """Flash a warning border and present the Reset control."""
+        self.mode = "complete"
+        self.add_class("complete")
+        self.flash_timer.resume()
+        self.set_control("Reset", "warning")
+
+    def reset(self) -> None:
+        """Restore the completed timer to its configured duration."""
+        self.flash_timer.pause()
+        self.remove_class("complete", "flash")
+        self.query_one(TimerDisplay).reset()
+        self.mode = "stopped"
+        self.set_control("Start", "success")
+
+    def set_control(self, label: str, variant: str) -> None:
+        """Update the label and styling of the single control button."""
+        control = self.query_one("#timer-control", Button)
+        control.label = label
+        control.variant = variant
+
+
+class Spotify(Static): ...
+
+
+class Todo(Static): ...
+
+
+# TODO: figure out a SQL implementation
+# should be stored at ~/.local/state/dashify/todo.db
 
 
 class Clock(VerticalGroup):
