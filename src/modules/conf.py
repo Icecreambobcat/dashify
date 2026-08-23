@@ -8,6 +8,11 @@ META_CONTAINER_KINDS = {"hbox", "vbox"}
 INVALID_CONFIG_KIND = "__invalid__"
 
 
+def invalid_config(message: str) -> dict[str, Any]:
+    """Return a normalised configuration node that composes to a warning."""
+    return {"kind": INVALID_CONFIG_KIND, "opts": {"message": message}}
+
+
 class Config(BaseModel):
     """A validated widget-tree node with optional configuration and children."""
 
@@ -35,6 +40,8 @@ def flatten_config(config: object) -> dict[str, Any] | None:
     opts = config.get("opts")
     if isinstance(opts, dict):
         flattened["opts"] = opts
+    elif opts is not None:
+        return invalid_config("Malformed opts table")
 
     if kind.casefold() in META_CONTAINER_KINDS:
         children = []
@@ -42,14 +49,7 @@ def flatten_config(config: object) -> dict[str, Any] | None:
             if key in {"kind", "opts"} or not isinstance(value, dict):
                 continue
             child = flatten_config(value)
-            children.append(
-                child
-                if child is not None
-                else {
-                    "kind": INVALID_CONFIG_KIND,
-                    "opts": {"message": "Invalid widget configuration"},
-                }
-            )
+            children.append(child or invalid_config("Invalid widget configuration"))
         flattened["children"] = children
 
     return flattened

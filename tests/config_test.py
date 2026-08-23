@@ -63,8 +63,8 @@ def test_flatten_config_ignores_invalid_nodes(config: object):
 def test_flatten_config_ignores_bad_options_and_children():
     config = {
         "kind": "VBox",
-        "opts": "not a table",
         "valid": {"kind": "Clock"},
+        "malformed_opts": {"kind": "Clock", "opts": "not a table"},
         "missing_kind": {"opts": {"timezone": "UTC"}},
         "not_a_table": "ignored",
     }
@@ -73,6 +73,10 @@ def test_flatten_config_ignores_bad_options_and_children():
         "kind": "VBox",
         "children": [
             {"kind": "Clock"},
+            {
+                "kind": "__invalid__",
+                "opts": {"message": "Malformed opts table"},
+            },
             {
                 "kind": "__invalid__",
                 "opts": {"message": "Invalid widget configuration"},

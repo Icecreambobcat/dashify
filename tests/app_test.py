@@ -45,7 +45,7 @@ class TestDashify:
                     "kind": "HBox",
                     "children": [
                         {"kind": "Clock"},
-                        {"kind": "Unknown"},
+                        {"kind": "Clock", "opts": {"timezone": 10}},
                     ],
                 }
             ),

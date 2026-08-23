@@ -12,7 +12,7 @@ def test_composes_supported_nested_layout_and_allowed_options():
                     "kind": "VBox",
                     "children": [
                         {"kind": "Clock", "opts": {"timezone": "UTC"}},
-                        {"kind": "Timer", "opts": {"ignored": "value"}},
+                        {"kind": "Timer"},
                     ],
                 }
             ],
@@ -31,13 +31,15 @@ def test_composes_supported_nested_layout_and_allowed_options():
     assert isinstance(column.elements[1], Timer)
 
 
-def test_ignores_unknown_widgets_and_invalid_options():
+def test_shows_warnings_for_unknown_widgets_and_invalid_options():
     config = Config.model_validate(
         {
             "kind": "VBox",
             "children": [
                 {"kind": "Unknown"},
                 {"kind": "Clock", "opts": {"timezone": 10}},
+                {"kind": "Clock", "opts": {"not_an_option": "value"}},
+                {"kind": "Timer", "opts": {"mode": "running"}},
             ],
         }
     )
@@ -45,15 +47,23 @@ def test_ignores_unknown_widgets_and_invalid_options():
     layout = compose_from_config(config)
 
     assert isinstance(layout, VBox)
-    assert len(layout.elements) == 2
+    assert len(layout.elements) == 4
     assert isinstance(layout.elements[0], InvalidConfig)
-    clock = layout.elements[1]
-    assert isinstance(clock, Clock)
-    assert clock.timezone == "local"
+    assert isinstance(layout.elements[1], InvalidConfig)
+    assert isinstance(layout.elements[2], InvalidConfig)
+    timer = layout.elements[3]
+    assert isinstance(timer, Timer)
+    assert timer.mode == "running"
 
 
 def test_ignores_an_unknown_root_widget():
     assert compose_from_config(Config.model_validate({"kind": "Unknown"})) is None
+
+
+def test_shows_a_root_warning_for_invalid_root_options():
+    config = Config.model_validate({"kind": "Clock", "opts": {"timezone": 10}})
+
+    assert compose_from_config(config) is None
 
 
 def test_shows_a_warning_for_a_malformed_child_config():
